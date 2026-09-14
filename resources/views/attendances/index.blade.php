@@ -461,7 +461,7 @@
             margin: 0 auto 16px;
         }
 
-        /* Pagination container */
+        /* Pagination container & Modern UI */
         .pagination-wrap {
             padding: 16px 20px;
             border-top: 1px solid var(--gray-200);
@@ -469,11 +469,110 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
+            background: #ffffff;
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
         }
         .pagination-info {
             font-size: 13px;
             color: var(--gray-500);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .pagination-info strong {
+            color: var(--dark);
+            font-weight: 700;
+        }
+        .pagination-nav {
+            display: flex;
+            align-items: center;
+        }
+        .pagination-list {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            flex-wrap: wrap;
+        }
+        .pagination-list li {
+            display: inline-flex;
+        }
+        .pagination-btn,
+        .pagination-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            box-sizing: border-box;
+        }
+        .pagination-btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+            background: #ffffff;
+            color: var(--gray-700);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .pagination-btn:hover:not(.disabled) {
+            background: var(--gray-50);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+            transform: translateY(-1px);
+        }
+        .pagination-btn.disabled {
+            color: var(--gray-300);
+            background: var(--gray-50);
+            border-color: var(--gray-200);
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+        .pagination-number {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            color: var(--gray-700);
+            background: transparent;
+        }
+        .pagination-number:hover:not(.active) {
+            background: var(--gray-100);
+            color: var(--dark);
+        }
+        .pagination-number.active {
+            background: var(--primary);
+            color: #ffffff;
+            font-weight: 700;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
+        }
+        .pagination-dots {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 32px;
+            height: 36px;
+            color: var(--gray-500);
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Fallback if default Laravel pagination is rendered */
+        nav[role="navigation"] svg {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
         }
 
         /* Footer */
@@ -868,7 +967,7 @@
             @if ($attendances->hasPages())
                 <div class="pagination-wrap">
                     <div class="pagination-info">
-                        Halaman <strong>{{ $attendances->currentPage() }}</strong> dari <strong>{{ $attendances->lastPage() }}</strong>
+                        Menampilkan <strong>{{ $attendances->firstItem() }}</strong> - <strong>{{ $attendances->lastItem() }}</strong> dari <strong>{{ $attendances->total() }}</strong> data &bull; Halaman <strong>{{ $attendances->currentPage() }}</strong> / <strong>{{ $attendances->lastPage() }}</strong>
                     </div>
                     <div>
                         {{ $attendances->links() }}
