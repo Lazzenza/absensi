@@ -28,7 +28,27 @@ class UserSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // 2. Buat 10 User Dummy Otomatis Menggunakan Factory
-        User::factory(10)->create();
+        // 2. Daftar 10 Karyawan (Silakan ganti nama dan email di bawah ini sesuai keinginan Anda)
+        $employees = [
+            ['name' => 'Ahmad Fauzi',       'email' => 'ahmad.fauzi@presensi.com'],
+            ['name' => 'Budi Santoso',      'email' => 'budi.santoso@presensi.com'],
+            ['name' => 'Citra Lestari',     'email' => 'citra.lestari@presensi.com'],
+            ['name' => 'Dewi Anggraini',    'email' => 'dewi.anggraini@presensi.com'],
+            ['name' => 'Eko Prasetyo',      'email' => 'eko.prasetyo@presensi.com'],
+            ['name' => 'Fajar Hidayat',     'email' => 'fajar.hidayat@presensi.com'],
+            ['name' => 'Gita Permata',      'email' => 'gita.permata@presensi.com'],
+            ['name' => 'Hendra Wijaya',     'email' => 'hendra.wijaya@presensi.com'],
+            ['name' => 'Indah Kusuma',      'email' => 'indah.kusuma@presensi.com'],
+            ['name' => 'Joko Susilo',       'email' => 'joko.susilo@presensi.com'],
+        ];
+
+        foreach ($employees as $emp) {
+            User::create([
+                'name'              => $emp['name'],
+                'email'             => $emp['email'],
+                'password'          => Hash::make('password123'),
+                'email_verified_at' => now(),
+            ]);
+        }
     }
 }
