@@ -151,7 +151,7 @@ Untuk menguji seluruh fitur yang memerlukan login:
 | :--- | :--- | :--- |
 | **Administrator** | `admin@presensi.com` | `password123` |
 | **Karyawan Magang** | `intern@presensi.com` | `password123` |
-
+| **Akun Pribadi** | `rachmat.akbar@jakarta.go.id` | `password123` |
 ---
 
 ## 🧪 Menjalankan Pengujian Otomatis (Automated Tests)
