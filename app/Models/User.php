@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -47,10 +48,26 @@ class User extends Authenticatable
     }
 
     /**
+     * Memeriksa apakah user memiliki peran Administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' || $this->email === 'admin@presensi.com';
+    }
+
+    /**
      * Relasi one-to-many: User memiliki banyak catatan Attendance
      */
     public function attendances(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Attendance::class);
+    }
+
+    /**
+     * Relasi one-to-many: Admin yang menyetujui presensi
+     */
+    public function approvedAttendances(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Attendance::class, 'approved_by');
     }
 }

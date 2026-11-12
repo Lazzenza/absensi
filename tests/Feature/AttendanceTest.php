@@ -271,7 +271,23 @@ class AttendanceTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_pdf_export_returns_pdf_stream_with_active_filters(): void
+    public function test_pdf_export_returns_pdf_stream_for_admin_with_active_filters(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        Attendance::factory()->create([
+            'user_id' => $this->user->id,
+            'date'    => '2026-09-10',
+            'status'  => 'Hadir',
+        ]);
+
+        $response = $this->actingAs($admin)->get('/attendances/report/pdf?status=Hadir');
+
+        $response->assertStatus(200);
+        $this->assertEquals('application/pdf', $response->headers->get('content-type'));
+    }
+
+    public function test_non_admin_cannot_download_pdf_report(): void
     {
         Attendance::factory()->create([
             'user_id' => $this->user->id,
@@ -279,10 +295,99 @@ class AttendanceTest extends TestCase
             'status'  => 'Hadir',
         ]);
 
-        $response = $this->actingAs($this->user)->get('/attendances/report/pdf?status=Hadir');
+        $response = $this->actingAs($this->user)->get('/attendances/report/pdf');
 
-        $response->assertStatus(200);
-        $this->assertEquals('application/pdf', $response->headers->get('content-type'));
+        $response->assertStatus(403);
+    }
+
+    public function test_submitting_izin_or_sakit_sets_pending_approval_status(): void
+    {
+        Carbon::setTestNow('2026-09-15 08:00:00');
+
+        $response = $this->actingAs($this->user)->post('/attendances', [
+            'user_id' => $this->user->id,
+            'type'    => 'izin',
+            'notes'   => 'Izin bimbingan akademik skripsi di kampus',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('attendances', [
+            'user_id'         => $this->user->id,
+            'date'            => '2026-09-15',
+            'status'          => 'Izin',
+            'approval_status' => 'pending',
+        ]);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_admin_can_approve_pending_attendance(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $attendance = Attendance::create([
+            'user_id'         => $this->user->id,
+            'date'            => '2026-09-16',
+            'status'          => 'Sakit',
+            'notes'           => 'Dispensasi flu berat',
+            'approval_status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->post("/attendances/{$attendance->id}/approve");
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('attendances', [
+            'id'              => $attendance->id,
+            'approval_status' => 'approved',
+            'approved_by'     => $admin->id,
+        ]);
+    }
+
+    public function test_admin_can_reject_pending_attendance_with_reason(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $attendance = Attendance::create([
+            'user_id'         => $this->user->id,
+            'date'            => '2026-09-16',
+            'status'          => 'Izin',
+            'notes'           => 'Izin keperluan pribadi',
+            'approval_status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($admin)->post("/attendances/{$attendance->id}/reject", [
+            'notes' => 'Surat rekomendasi kampus belum dilampirkan',
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('attendances', [
+            'id'              => $attendance->id,
+            'approval_status' => 'rejected',
+            'approved_by'     => $admin->id,
+            'approval_note'   => 'Surat rekomendasi kampus belum dilampirkan',
+        ]);
+    }
+
+    public function test_non_admin_cannot_approve_or_reject_attendance(): void
+    {
+        $attendance = Attendance::create([
+            'user_id'         => $this->user->id,
+            'date'            => '2026-09-16',
+            'status'          => 'Izin',
+            'approval_status' => 'pending',
+        ]);
+
+        $approveResponse = $this->actingAs($this->user)->post("/attendances/{$attendance->id}/approve");
+        $approveResponse->assertStatus(403);
+
+        $rejectResponse = $this->actingAs($this->user)->post("/attendances/{$attendance->id}/reject", [
+            'notes' => 'Coba tolak',
+        ]);
+        $rejectResponse->assertStatus(403);
     }
 
     public function test_csv_export_returns_stream_with_headers(): void

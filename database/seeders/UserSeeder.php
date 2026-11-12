@@ -17,6 +17,7 @@ class UserSeeder extends Seeder
         User::create([
             'name'              => 'Rachmat Akbar',
             'email'             => 'rachmat.akbar@jakarta.go.id',
+            'role'              => 'user',
             'password'          => Hash::make('password123'),
             'email_verified_at' => now(),
         ]);
@@ -24,6 +25,7 @@ class UserSeeder extends Seeder
         User::create([
             'name'              => 'Admin Presensi',
             'email'             => 'admin@presensi.com',
+            'role'              => 'admin',
             'password'          => Hash::make('password123'), // Terenkripsi Bcrypt
             'email_verified_at' => now(),
         ]);
@@ -31,6 +33,7 @@ class UserSeeder extends Seeder
         User::create([
             'name'              => 'Karyawan Magang',
             'email'             => 'intern@presensi.com',
+            'role'              => 'user',
             'password'          => Hash::make('password123'), // Terenkripsi Bcrypt
             'email_verified_at' => now(),
         ]);
@@ -53,6 +56,7 @@ class UserSeeder extends Seeder
             User::create([
                 'name'              => $emp['name'],
                 'email'             => $emp['email'],
+                'role'              => 'user',
                 'password'          => Hash::make('password123'),
                 'email_verified_at' => now(),
             ]);

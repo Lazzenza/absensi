@@ -443,17 +443,57 @@
             </div>
 
         @else
-            <!-- ================= STATE 3: SUDAH SELESAI ================= -->
+            <!-- ================= STATE 3: SUDAH SELESAI / DALAM PENINJAUAN ================= -->
             <div class="bg-surface-container-lowest rounded-xl border border-surface-container shadow-sm p-space-xl flex flex-col items-center text-center max-w-2xl mx-auto gap-space-md">
-                <div class="w-16 h-16 rounded-full bg-[#ecfdf5] text-[#047857] flex items-center justify-center shadow-sm">
-                    <span class="material-symbols-outlined text-[36px] filled">verified</span>
-                </div>
-                <div>
-                    <h2 class="font-bold text-headline-sm text-primary">Presensi Hari Ini Telah Selesai</h2>
-                    <p class="text-body-md text-on-surface-variant mt-1">
-                        Catatan kehadiran Anda untuk tanggal <strong>{{ \Carbon\Carbon::parse($todayAttendance->date)->locale('id')->isoFormat('dddd, D MMMM Y') }}</strong> telah lengkap tervalidasi.
-                    </p>
-                </div>
+                @if(in_array($todayAttendance->status, ['Izin', 'Sakit']))
+                    @if($todayAttendance->approval_status === 'pending')
+                        <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shadow-sm border border-amber-200">
+                            <span class="material-symbols-outlined text-[36px]">hourglass_top</span>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-headline-sm text-primary">Permohonan Menunggu Persetujuan Admin</h2>
+                            <p class="text-body-md text-on-surface-variant mt-1">
+                                Anda telah mengajukan dispensasi <strong>{{ $todayAttendance->status }}</strong> untuk tanggal <strong>{{ \Carbon\Carbon::parse($todayAttendance->date)->locale('id')->isoFormat('dddd, D MMMM Y') }}</strong>. Permohonan ini sedang ditinjau oleh Administrator / Kepegawaian Bappeda DKI Jakarta.
+                            </p>
+                        </div>
+                    @elseif($todayAttendance->approval_status === 'approved')
+                        <div class="w-16 h-16 rounded-full bg-[#ecfdf5] text-[#047857] flex items-center justify-center shadow-sm border border-emerald-200">
+                            <span class="material-symbols-outlined text-[36px] filled">verified</span>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-headline-sm text-primary">Permohonan Disetujui Admin</h2>
+                            <p class="text-body-md text-on-surface-variant mt-1">
+                                Permohonan dispensasi <strong>{{ $todayAttendance->status }}</strong> Anda untuk tanggal <strong>{{ \Carbon\Carbon::parse($todayAttendance->date)->locale('id')->isoFormat('dddd, D MMMM Y') }}</strong> telah disetujui resmi oleh Administrator.
+                            </p>
+                        </div>
+                    @elseif($todayAttendance->approval_status === 'rejected')
+                        <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shadow-sm border border-rose-200">
+                            <span class="material-symbols-outlined text-[36px]">cancel</span>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-headline-sm text-rose-700">Permohonan Ditolak Admin</h2>
+                            <p class="text-body-md text-on-surface-variant mt-1">
+                                Permohonan dispensasi <strong>{{ $todayAttendance->status }}</strong> Anda tidak disetujui.
+                            </p>
+                            @if($todayAttendance->approval_note)
+                                <div class="mt-2 p-3 rounded-lg bg-rose-50 text-rose-800 text-body-sm border border-rose-200 text-left">
+                                    <strong>Catatan Admin:</strong> {{ $todayAttendance->approval_note }}
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                @else
+                    <div class="w-16 h-16 rounded-full bg-[#ecfdf5] text-[#047857] flex items-center justify-center shadow-sm">
+                        <span class="material-symbols-outlined text-[36px] filled">verified</span>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-headline-sm text-primary">Presensi Hari Ini Telah Selesai</h2>
+                        <p class="text-body-md text-on-surface-variant mt-1">
+                            Catatan kehadiran Anda untuk tanggal <strong>{{ \Carbon\Carbon::parse($todayAttendance->date)->locale('id')->isoFormat('dddd, D MMMM Y') }}</strong> telah lengkap tervalidasi.
+                        </p>
+                    </div>
+                @endif
+
                 <div class="flex flex-wrap items-center justify-center gap-space-md p-space-md rounded-xl bg-surface-container-low border border-surface-container w-full">
                     <div>
                         <span class="block text-label-sm text-on-surface-variant">Status</span>
@@ -461,13 +501,23 @@
                     </div>
                     <div class="w-px h-8 bg-surface-container-high hidden sm:block"></div>
                     <div>
-                        <span class="block text-label-sm text-on-surface-variant">Waktu Masuk</span>
-                        <span class="font-bold text-label-md text-primary">{{ $todayAttendance->time_in ?? '—' }} WIB</span>
+                        <span class="block text-label-sm text-on-surface-variant">Status Persetujuan</span>
+                        @if($todayAttendance->approval_status === 'pending')
+                            <span class="font-bold text-label-md text-amber-700">Menunggu Review</span>
+                        @elseif($todayAttendance->approval_status === 'approved')
+                            <span class="font-bold text-label-md text-emerald-700">Disetujui</span>
+                        @elseif($todayAttendance->approval_status === 'rejected')
+                            <span class="font-bold text-label-md text-rose-700">Ditolak</span>
+                        @else
+                            <span class="font-bold text-label-md text-primary">Tervalidasi</span>
+                        @endif
                     </div>
                     <div class="w-px h-8 bg-surface-container-high hidden sm:block"></div>
                     <div>
-                        <span class="block text-label-sm text-on-surface-variant">Waktu Pulang</span>
-                        <span class="font-bold text-label-md text-primary">{{ $todayAttendance->time_out ?? '—' }} WIB</span>
+                        <span class="block text-label-sm text-on-surface-variant">Waktu</span>
+                        <span class="font-bold text-label-md text-primary">
+                            {{ $todayAttendance->time_in ? $todayAttendance->time_in . ' WIB' : 'Dispensasi Penuh' }}
+                        </span>
                     </div>
                 </div>
                 <div class="flex items-center gap-space-sm pt-space-xs">
@@ -501,6 +551,15 @@
                     <span class="text-label-sm px-space-sm py-1 rounded-full bg-surface-container-low text-primary font-bold">
                         Mode Pengajuan
                     </span>
+                </div>
+
+                <!-- Administrative Notice Banner -->
+                <div class="p-space-md rounded-xl bg-blue-50 border border-blue-200 text-blue-900 text-body-sm flex items-start gap-space-sm">
+                    <span class="material-symbols-outlined text-[22px] text-blue-600 shrink-0 mt-0.5">info</span>
+                    <div>
+                        <strong class="font-bold text-label-md block text-blue-950">Alur Penyetujuan Administrator:</strong>
+                        Setiap pengajuan dispensasi <em>Izin</em> atau <em>Sakit</em> akan masuk dengan status <strong>Menunggu Persetujuan</strong> dan memerlukan peninjauan langsung oleh Admin / Subbagian Kepegawaian Bappeda DKI Jakarta sebelum tercatat sah.
+                    </div>
                 </div>
 
                 <!-- Form Element -->

@@ -105,11 +105,19 @@
                 <span class="material-symbols-outlined text-[18px]">print</span>
                 <span class="hidden sm:inline">Cetak Dokumen</span>
             </button>
-            <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
-               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-container text-white font-bold text-xs transition-colors shadow-sm">
-                <span class="material-symbols-outlined text-[18px]">download</span>
-                <span>Download PDF</span>
-            </a>
+            @if(Auth::user() && Auth::user()->isAdmin())
+                <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary hover:bg-primary-container text-white font-bold text-xs transition-colors shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">download</span>
+                    <span>Download PDF</span>
+                </a>
+            @else
+                <span title="Akses Terbatas: Hanya Administrator yang berwenang mengunduh dokumen PDF resmi"
+                      class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container text-outline font-bold text-xs cursor-not-allowed opacity-75 border border-surface-container">
+                    <span class="material-symbols-outlined text-[18px]">lock</span>
+                    <span>Download PDF (Khusus Admin)</span>
+                </span>
+            @endif
         </div>
     </header>
 

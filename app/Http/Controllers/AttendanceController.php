@@ -18,16 +18,17 @@ class AttendanceController extends Controller
     {
         // Validasi parameter filter (Requirement 5.6)
         $request->validate([
-            'search'         => 'nullable|string|max:100',
-            'user_id'        => 'nullable|exists:users,id',
-            'date'           => 'nullable|date',
-            'start_date'     => 'nullable|date',
-            'end_date'       => 'nullable|date|after_or_equal:start_date',
-            'month'          => 'nullable|integer|between:1,12',
-            'year'           => 'nullable|integer|between:2000,2100',
-            'status'         => 'nullable|in:Hadir,Terlambat,Izin,Sakit',
-            'sort_by'        => 'nullable|in:date,name,time_in,time_out,status',
-            'sort_direction' => 'nullable|in:asc,desc',
+            'search'          => 'nullable|string|max:100',
+            'user_id'         => 'nullable|exists:users,id',
+            'date'            => 'nullable|date',
+            'start_date'      => 'nullable|date',
+            'end_date'        => 'nullable|date|after_or_equal:start_date',
+            'month'           => 'nullable|integer|between:1,12',
+            'year'            => 'nullable|integer|between:2000,2100',
+            'status'          => 'nullable|in:Hadir,Terlambat,Izin,Sakit',
+            'approval_status' => 'nullable|in:pending,approved,rejected',
+            'sort_by'         => 'nullable|in:date,name,time_in,time_out,status',
+            'sort_direction'  => 'nullable|in:asc,desc',
         ]);
 
         // Ringkasan (Summary) dihitung mengikuti hasil filter yang sedang aktif (Requirement 5.7)
@@ -95,12 +96,13 @@ class AttendanceController extends Controller
                 $status = Carbon::now()->format('H:i') > '08:00' ? 'Terlambat' : 'Hadir';
 
                 Attendance::create([
-                    'user_id'  => $userId,
-                    'date'     => $today,
-                    'time_in'  => $currentTime,
-                    'time_out' => null,
-                    'status'   => $status,
-                    'notes'    => $request->notes ?? ($status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Tepat waktu'),
+                    'user_id'         => $userId,
+                    'date'            => $today,
+                    'time_in'         => $currentTime,
+                    'time_out'        => null,
+                    'status'          => $status,
+                    'approval_status' => 'approved',
+                    'notes'           => $request->notes ?? ($status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Tepat waktu'),
                 ]);
 
                 return back()->with('success', 'Berhasil melakukan Check-in (Status: ' . $status . ').');
@@ -133,15 +135,16 @@ class AttendanceController extends Controller
 
                 $statusName = ucfirst($request->type);
                 Attendance::create([
-                    'user_id'  => $userId,
-                    'date'     => $today,
-                    'time_in'  => null,
-                    'time_out' => null,
-                    'status'   => $statusName,
-                    'notes'    => $request->notes ?? ($statusName === 'Izin' ? 'Izin keperluan akademik / kedinasan' : 'Dispensasi sakit terlampir'),
+                    'user_id'         => $userId,
+                    'date'            => $today,
+                    'time_in'         => null,
+                    'time_out'        => null,
+                    'status'          => $statusName,
+                    'approval_status' => 'pending',
+                    'notes'           => $request->notes ?? ($statusName === 'Izin' ? 'Izin keperluan akademik / kedinasan' : 'Dispensasi sakit terlampir'),
                 ]);
 
-                return back()->with('success', 'Berhasil mencatat keterangan ' . $statusName . '.');
+                return back()->with('success', 'Pengajuan ' . $statusName . ' berhasil dikirim dan sedang menunggu persetujuan administrator.');
 
             default:
                 return back()->with('error', 'Tipe presensi tidak valid.');
@@ -149,10 +152,58 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Menyetujui pengajuan izin / sakit oleh Administrator.
+     */
+    public function approve(Attendance $attendance)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Akses ditolak. Hanya administrator yang memiliki wewenang untuk menyetujui presensi.');
+        }
+
+        $attendance->update([
+            'approval_status' => 'approved',
+            'approved_by'     => auth()->id(),
+            'approval_note'   => null,
+        ]);
+
+        return back()->with('success', "Pengajuan {$attendance->status} untuk {$attendance->user->name} berhasil disetujui.");
+    }
+
+    /**
+     * Menolak pengajuan izin / sakit oleh Administrator.
+     */
+    public function reject(Request $request, Attendance $attendance)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Akses ditolak. Hanya administrator yang memiliki wewenang untuk menolak presensi.');
+        }
+
+        $request->validate([
+            'approval_note' => 'nullable|string|max:255',
+            'notes'         => 'nullable|string|max:255',
+        ]);
+
+        $note = $request->approval_note ?? $request->notes ?? 'Pengajuan ditolak oleh administrator.';
+
+        $attendance->update([
+            'approval_status' => 'rejected',
+            'approved_by'     => auth()->id(),
+            'approval_note'   => $note,
+        ]);
+
+        return back()->with('success', "Pengajuan {$attendance->status} untuk {$attendance->user->name} telah ditolak.");
+    }
+
+    /**
      * Export laporan presensi ke PDF sesuai filter aktif (Requirement 5.8).
+     * Khusus Administrator (Requirement Penyetujuan & Akses PDF).
      */
     public function downloadReport(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Akses ditolak. Hanya administrator yang dapat mengunduh laporan PDF presensi.');
+        }
+
         $attendances = $this->buildFilteredQuery($request, true)->get();
 
         $summary = [
@@ -272,6 +323,11 @@ class AttendanceController extends Controller
         // 6. Filter berdasarkan status presensi
         if ($request->filled('status') && in_array($request->status, ['Hadir', 'Terlambat', 'Izin', 'Sakit'])) {
             $query->where('attendances.status', $request->status);
+        }
+
+        // 7. Filter berdasarkan status persetujuan (Pending / Approved / Rejected)
+        if ($request->filled('approval_status') && in_array($request->approval_status, ['pending', 'approved', 'rejected'])) {
+            $query->where('attendances.approval_status', $request->approval_status);
         }
 
         // 7. Dynamic Sorting (Requirement 5.4)

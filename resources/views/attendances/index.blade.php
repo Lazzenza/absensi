@@ -33,11 +33,19 @@
                 <span class="material-symbols-outlined text-[18px] text-secondary">table_view</span>
                 <span>Unduh Excel / CSV</span>
             </a>
-            <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
-               class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary shadow-sm hover:bg-primary transition font-bold text-label-md">
-                <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                <span>Export PDF</span>
-            </a>
+            @if(Auth::user() && Auth::user()->isAdmin())
+                <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary shadow-sm hover:bg-primary transition font-bold text-label-md">
+                    <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                    <span>Export PDF</span>
+                </a>
+            @else
+                <span title="Akses Terbatas: Hanya Administrator yang berwenang mengunduh dokumen PDF resmi" 
+                      class="inline-flex items-center gap-space-xs px-space-md py-2.5 rounded-lg bg-surface-container text-outline font-bold text-label-md cursor-not-allowed opacity-75 border border-surface-container">
+                    <span class="material-symbols-outlined text-[18px]">lock</span>
+                    <span>Export PDF (Khusus Admin)</span>
+                </span>
+            @endif
         </div>
     </div>
 
@@ -283,13 +291,55 @@
                                 {{ $item->time_out ? \Carbon\Carbon::parse($item->time_out)->format('H:i') . ' WIB' : '—' }}
                             </td>
                             <td class="py-space-md px-space-md whitespace-nowrap">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-semibold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
-                                    {{ $item->status }}
-                                </span>
+                                <div class="flex flex-col gap-1 items-start">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-semibold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
+                                        {{ $item->status }}
+                                    </span>
+                                    @if(in_array($item->status, ['Izin', 'Sakit']))
+                                        @if($item->approval_status === 'pending')
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                                Menunggu Approval
+                                            </span>
+                                        @elseif($item->approval_status === 'approved')
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Disetujui
+                                            </span>
+                                        @elseif($item->approval_status === 'rejected')
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200" title="{{ $item->approval_note }}">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                                Ditolak
+                                            </span>
+                                        @endif
+                                    @endif
+                                </div>
                             </td>
                             <td class="py-space-md px-space-md text-on-surface-variant text-body-sm">
-                                {{ $item->notes ?? ($item->status === 'Hadir' ? 'Tepat waktu' : ($item->status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Surat keterangan diajukan')) }}
+                                <div>{{ $item->notes ?? ($item->status === 'Hadir' ? 'Tepat waktu' : ($item->status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Surat keterangan diajukan')) }}</div>
+                                @if($item->approval_note)
+                                    <div class="text-[11px] text-rose-700 font-semibold mt-0.5">Catatan Penolakan: {{ $item->approval_note }}</div>
+                                @endif
+                                @if(Auth::user() && Auth::user()->isAdmin() && in_array($item->status, ['Izin', 'Sakit']) && $item->approval_status === 'pending')
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <form action="{{ route('attendances.approve', $item->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" onclick="return confirm('Setujui pengajuan ini?')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-colors">
+                                                <span class="material-symbols-outlined text-[14px]">check</span>
+                                                Setujui
+                                            </button>
+                                        </form>
+                                        <form action="{{ route('attendances.reject', $item->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <input type="hidden" name="notes" value="Ditolak oleh Admin">
+                                            <button type="submit" onclick="return confirm('Tolak permohonan ini?')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-800 font-bold text-[11px] border border-rose-300 transition-colors">
+                                                <span class="material-symbols-outlined text-[14px]">close</span>
+                                                Tolak
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty

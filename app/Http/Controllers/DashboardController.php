@@ -36,6 +36,13 @@ class DashboardController extends Controller
             ->whereDate('date', $today)
             ->first() : null;
 
+        // Daftar pengajuan izin & sakit yang menunggu persetujuan admin
+        $pendingApprovals = Attendance::with('user')
+            ->where('approval_status', 'pending')
+            ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get();
+
         // Perhitungan hari kerja magang (13 Juli - 30 Des 2026: 119 hari)
         $totalWorkDays = 119;
         $workDaysPassed = 73;
@@ -51,6 +58,7 @@ class DashboardController extends Controller
             'todayRecords',
             'latestAttendances',
             'todayAttendance',
+            'pendingApprovals',
             'totalWorkDays',
             'workDaysPassed',
             'workDaysRemaining'

@@ -248,11 +248,16 @@
                     <div class="flex items-center gap-space-sm">
                         <!-- User Identity -->
                         <div class="hidden sm:flex flex-col text-right">
-                            <span class="font-semibold text-label-md text-primary leading-tight">
-                                {{ Auth::user()->name ?? 'Rachmat Akbar' }}
-                            </span>
+                            <div class="flex items-center justify-end gap-1.5">
+                                <span class="font-semibold text-label-md text-primary leading-tight">
+                                    {{ Auth::user()->name ?? 'Rachmat Akbar' }}
+                                </span>
+                                @if(Auth::user() && Auth::user()->isAdmin())
+                                    <span class="px-1.5 py-0.5 bg-primary text-white text-[10px] font-bold rounded tracking-wide">ADMIN</span>
+                                @endif
+                            </div>
                             <span class="text-body-sm text-on-surface-variant leading-tight">
-                                Peserta Magang - Bidang PPIP
+                                {{ Auth::user() && Auth::user()->isAdmin() ? 'Subbagian Kepegawaian Bappeda' : 'Peserta Magang - Bidang PPIP' }}
                             </span>
                         </div>
 

@@ -36,11 +36,19 @@
                 <span class="material-symbols-outlined text-[18px] text-secondary">visibility</span>
                 <span>Pratinjau Dokumen</span>
             </a>
-            <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
-               class="inline-flex items-center gap-space-xs px-space-lg py-2.5 rounded-lg bg-primary-container text-on-primary font-bold text-label-md hover:bg-primary transition-all shadow-md">
-                <span class="material-symbols-outlined text-[20px] text-secondary-fixed">picture_as_pdf</span>
-                <span>Export PDF</span>
-            </a>
+            @if(Auth::user() && Auth::user()->isAdmin())
+                <a href="{{ route('attendances.report.pdf', request()->query()) }}" target="_blank"
+                   class="inline-flex items-center gap-space-xs px-space-lg py-2.5 rounded-lg bg-primary-container text-on-primary font-bold text-label-md hover:bg-primary transition-all shadow-md">
+                    <span class="material-symbols-outlined text-[20px] text-secondary-fixed">picture_as_pdf</span>
+                    <span>Export PDF</span>
+                </a>
+            @else
+                <span title="Akses Terbatas: Hanya Administrator yang berwenang mengunduh laporan PDF resmi"
+                      class="inline-flex items-center gap-space-xs px-space-lg py-2.5 rounded-lg bg-surface-container text-outline font-bold text-label-md cursor-not-allowed opacity-75 border border-surface-container shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">lock</span>
+                    <span>Export PDF (Khusus Admin)</span>
+                </span>
+            @endif
         </div>
     </div>
 

@@ -20,6 +20,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
     Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
+    Route::post('/attendances/{attendance}/approve', [AttendanceController::class, 'approve'])->name('attendances.approve');
+    Route::post('/attendances/{attendance}/reject', [AttendanceController::class, 'reject'])->name('attendances.reject');
     Route::get('/attendances/report/pdf', [AttendanceController::class, 'downloadReport'])->name('attendances.report.pdf');
     Route::get('/attendances/report/csv', [AttendanceController::class, 'exportCsv'])->name('attendances.report.csv');
 
