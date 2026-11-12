@@ -17,6 +17,7 @@ class Attendance extends Model
         'time_in',
         'time_out',
         'status',
+        'notes',
     ];
 
     public function user(): BelongsTo

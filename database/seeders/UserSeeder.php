@@ -15,6 +15,13 @@ class UserSeeder extends Seeder
     {
         // 1. Akun Spesifik untuk Pengujian Login
         User::create([
+            'name'              => 'Rachmat Akbar',
+            'email'             => 'rachmat.akbar@jakarta.go.id',
+            'password'          => Hash::make('password123'),
+            'email_verified_at' => now(),
+        ]);
+
+        User::create([
             'name'              => 'Admin Presensi',
             'email'             => 'admin@presensi.com',
             'password'          => Hash::make('password123'), // Terenkripsi Bcrypt

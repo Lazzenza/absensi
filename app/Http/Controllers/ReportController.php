@@ -31,6 +31,38 @@ class ReportController extends Controller
         return view('reports.index', compact('records', 'summary', 'startDate', 'endDate'));
     }
 
+    public function previewPdf(Request $request)
+    {
+        $startDate = $request->input('start_date', '2026-07-13');
+        $endDate = $request->input('end_date', '2026-10-24');
+
+        $query = Attendance::with('user');
+
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('date', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->where('date', '<=', $request->end_date);
+        }
+
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $attendances = $query->orderBy('date', 'desc')->get();
+
+        $summary = [
+            'total'     => $attendances->count(),
+            'hadir'     => $attendances->where('status', 'Hadir')->count(),
+            'terlambat' => $attendances->where('status', 'Terlambat')->count(),
+            'izin'      => $attendances->where('status', 'Izin')->count(),
+            'sakit'     => $attendances->where('status', 'Sakit')->count(),
+        ];
+
+        return view('reports.preview', compact('attendances', 'summary', 'startDate', 'endDate'));
+    }
+
     public function userDetail(User $user, Request $request)
     {
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());

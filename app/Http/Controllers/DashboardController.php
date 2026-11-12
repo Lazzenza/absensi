@@ -25,6 +25,22 @@ class DashboardController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
+        $latestAttendances = Attendance::with('user')
+            ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
+            ->take(5)
+            ->get();
+
+        $user = auth()->user();
+        $todayAttendance = $user ? Attendance::where('user_id', $user->id)
+            ->whereDate('date', $today)
+            ->first() : null;
+
+        // Perhitungan hari kerja magang (13 Juli - 30 Des 2026: 119 hari)
+        $totalWorkDays = 119;
+        $workDaysPassed = 73;
+        $workDaysRemaining = 46;
+
         return view('dashboard.index', compact(
             'totalUsers',
             'totalPresensi',
@@ -32,7 +48,12 @@ class DashboardController extends Controller
             'terlambat',
             'izin',
             'sakit',
-            'todayRecords'
+            'todayRecords',
+            'latestAttendances',
+            'todayAttendance',
+            'totalWorkDays',
+            'workDaysPassed',
+            'workDaysRemaining'
         ));
     }
 }

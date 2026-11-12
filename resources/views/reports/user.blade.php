@@ -1,383 +1,159 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Presensi - Detail Presensi {{ $user->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --primary-light: #eff6ff;
-            --success: #16a34a;
-            --success-light: #dcfce7;
-            --warning: #d97706;
-            --warning-light: #fef3c7;
-            --danger: #dc2626;
-            --danger-light: #fee2e2;
-            --purple: #7c3aed;
-            --purple-light: #ede9fe;
-            --dark: #0f172a;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-300: #cbd5e1;
-            --gray-500: #64748b;
-            --gray-700: #334155;
-            --radius: 12px;
-            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
+@extends('layouts.app')
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+@section('title', 'Detail Riwayat Presensi - ' . $user->name)
+@section('breadcrumb', 'Detail Presensi ' . $user->name)
 
-        body {
-            background-color: #f8fafc;
-            color: var(--gray-700);
-            line-height: 1.5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+@section('content')
+<div class="flex flex-col w-full gap-space-lg">
 
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 24px 20px;
-            width: 100%;
-        }
-
-        .topbar {
-            background: #ffffff;
-            border-bottom: 1px solid var(--gray-200);
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            box-shadow: var(--shadow-sm);
-        }
-        .topbar-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            height: 68px;
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-decoration: none;
-            color: var(--dark);
-        }
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary), #3b82f6);
-            color: white;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 18px;
-        }
-        .brand-text h1 {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-        .brand-text p {
-            font-size: 12px;
-            color: var(--gray-500);
-        }
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .nav-link {
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-500);
-            transition: all 0.2s;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: var(--primary);
-            background-color: var(--primary-light);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: var(--radius);
-            border: 1px solid var(--gray-200);
-            box-shadow: var(--shadow-sm);
-        }
-        .stat-label {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: var(--gray-500);
-            margin-bottom: 6px;
-        }
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--dark);
-        }
-
-        .card {
-            background: white;
-            border-radius: var(--radius);
-            border: 1px solid var(--gray-200);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-        .card-header {
-            padding: 18px 22px;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--dark);
-        }
-        .card-body {
-            padding: 22px;
-        }
-
-        .filters {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 14px;
-            align-items: end;
-            margin-bottom: 20px;
-        }
-        .field label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--gray-700);
-        }
-        .field input, .btn {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid var(--gray-300);
-            font-size: 14px;
-        }
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-        }
-        .btn-secondary {
-            background-color: var(--gray-100);
-            color: var(--gray-700);
-            border: 1px solid var(--gray-300);
-        }
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-            border: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th {
-            background-color: var(--gray-50);
-            color: var(--gray-500);
-            font-weight: 600;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--gray-200);
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        td {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--gray-200);
-            color: var(--dark);
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 700;
-        }
-        .badge.hadir { background: var(--success-light); color: #166534; }
-        .badge.terlambat { background: var(--warning-light); color: #92400e; }
-        .badge.izin { background: var(--purple-light); color: #5b21b6; }
-        .badge.sakit { background: var(--danger-light); color: #991b1b; }
-
-        footer {
-            margin-top: auto;
-            border-top: 1px solid var(--gray-200);
-            background: white;
-            padding: 20px 0;
-            text-align: center;
-            font-size: 13px;
-            color: var(--gray-500);
-        }
-    </style>
-</head>
-<body>
-
-    <header class="topbar">
-        <div class="container topbar-content">
-            <a href="{{ route('dashboard') }}" class="brand">
-                <div class="brand-icon">P</div>
-                <div class="brand-text">
-                    <h1>PresensiApp</h1>
-                    <p>Sistem Presensi & Laporan</p>
-                </div>
+    <!-- Back Button & Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md">
+        <div class="flex items-center gap-space-sm">
+            <a href="{{ route('reports.index') }}" 
+               class="w-10 h-10 rounded-xl bg-surface-container-low hover:bg-surface-container text-primary flex items-center justify-center transition-colors border border-surface-container"
+               title="Kembali ke Rekap Laporan">
+                <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </a>
-
-            <nav class="nav-links">
-                <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
-                <a href="{{ route('attendances.index') }}" class="nav-link">Data Presensi</a>
-                <a href="{{ route('reports.index') }}" class="nav-link active">Laporan</a>
-            </nav>
-
-            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
-                @csrf
-                <button type="submit" style="padding:8px 16px; background:var(--danger-light); color:var(--danger); border:1px solid #fecaca; border-radius:8px; font-weight:600; cursor:pointer;">Keluar</button>
-            </form>
-        </div>
-    </header>
-
-    <main class="container">
-        <div style="display: flex; gap: 12px; margin-bottom: 20px; align-items: center; justify-content: space-between;">
-            <a href="{{ route('reports.index') }}" class="btn btn-secondary" style="width: auto;">
-                ← Kembali ke Ringkasan Laporan
-            </a>
-            <a href="{{ route('attendances.report.pdf', ['user_id' => $user->id, 'start_date' => $startDate, 'end_date' => $endDate]) }}" target="_blank" class="btn btn-danger" style="width: auto;">
-                📄 Cetak PDF Karyawan Ini
-            </a>
+            <div class="flex flex-col">
+                <h2 class="font-bold text-headline-sm lg:text-headline-lg text-primary leading-tight">
+                    {{ $user->name }}
+                </h2>
+                <p class="text-body-sm text-on-surface-variant">
+                    {{ $user->email }} • Peserta Magang - Bidang PPIP
+                </p>
+            </div>
         </div>
 
-        <!-- Summary Cards -->
-        <section class="summary-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Presensi</div>
-                <div class="stat-value">{{ $summary['total'] }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Hadir Tepat Waktu</div>
-                <div class="stat-value" style="color: var(--success);">{{ $summary['hadir'] }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Terlambat</div>
-                <div class="stat-value" style="color: var(--warning);">{{ $summary['terlambat'] }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Izin</div>
-                <div class="stat-value" style="color: var(--purple);">{{ $summary['izin'] }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Sakit</div>
-                <div class="stat-value" style="color: var(--danger);">{{ $summary['sakit'] }}</div>
-            </div>
-        </section>
+        <a href="{{ route('attendances.report.pdf', ['user_id' => $user->id, 'start_date' => $startDate, 'end_date' => $endDate]) }}" target="_blank" 
+           class="inline-flex items-center gap-1.5 px-space-md py-2.5 rounded-lg bg-primary-container text-on-primary font-bold text-label-md shadow-sm hover:bg-primary transition-all">
+            <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+            <span>Cetak PDF Peserta Ini</span>
+        </a>
+    </div>
 
-        <!-- Main Card -->
-        <section class="card">
-            <div class="card-header">
-                <div>
-                    <h2 class="card-title">Riwayat Presensi: {{ $user->name }}</h2>
-                    <p style="font-size: 13px; color: var(--gray-500);">Email: {{ $user->email }}</p>
-                </div>
-            </div>
-            <div class="card-body">
-                <form method="GET" action="{{ route('reports.user.detail', $user) }}" class="filters">
-                    <div class="field">
-                        <label for="start_date">Tanggal Awal</label>
-                        <input type="date" name="start_date" id="start_date" value="{{ $startDate }}">
-                    </div>
-                    <div class="field">
-                        <label for="end_date">Tanggal Akhir</label>
-                        <input type="date" name="end_date" id="end_date" value="{{ $endDate }}">
-                    </div>
-                    <div class="field">
-                        <button type="submit" class="btn btn-primary">Filter Periode</button>
-                    </div>
-                </form>
-
-                <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Check In</th>
-                                <th>Check Out</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($records as $record)
-                                <tr>
-                                    <td>{{ \Carbon\Carbon::parse($record->date)->translatedFormat('l, d F Y') }}</td>
-                                    <td>{{ $record->time_in ? \Carbon\Carbon::parse($record->time_in)->format('H:i') : '-' }}</td>
-                                    <td>{{ $record->time_out ? \Carbon\Carbon::parse($record->time_out)->format('H:i') : '-' }}</td>
-                                    <td>
-                                        <span class="badge {{ strtolower($record->status) }}">{{ $record->status }}</span>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" style="text-align: center; color: var(--gray-500); padding: 30px;">
-                                        Belum ada catatan presensi untuk karyawan ini dalam periode yang dipilih.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="container">
-            <p>&copy; {{ date('Y') }} Sistem Presensi & Laporan Presensi — Magang Laravel 12.</p>
+    <!-- Summary Metrics -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-space-md">
+        <div class="bg-surface-container-lowest rounded-xl p-space-md border border-surface-container shadow-sm flex flex-col justify-between">
+            <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Total Presensi</span>
+            <span class="font-bold text-headline-lg text-primary mt-2">{{ $summary['total'] }}</span>
         </div>
-    </footer>
+        <div class="bg-surface-container-lowest rounded-xl p-space-md border border-surface-container shadow-sm flex flex-col justify-between">
+            <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Hadir Tepat</span>
+            <span class="font-bold text-headline-lg text-[#047857] mt-2">{{ $summary['hadir'] }}</span>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-space-md border border-surface-container shadow-sm flex flex-col justify-between">
+            <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Terlambat</span>
+            <span class="font-bold text-headline-lg text-[#b45309] mt-2">{{ $summary['terlambat'] }}</span>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-space-md border border-surface-container shadow-sm flex flex-col justify-between">
+            <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Izin</span>
+            <span class="font-bold text-headline-lg text-[#0051d5] mt-2">{{ $summary['izin'] }}</span>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-space-md border border-surface-container shadow-sm flex flex-col justify-between col-span-2 sm:col-span-1">
+            <span class="text-label-sm font-bold text-on-surface-variant uppercase tracking-wider">Sakit</span>
+            <span class="font-bold text-headline-lg text-[#ba1a1a] mt-2">{{ $summary['sakit'] }}</span>
+        </div>
+    </div>
 
-</body>
-</html>
+    <!-- Filter Periode -->
+    <section class="p-space-lg rounded-xl bg-surface-container-lowest border border-surface-container shadow-sm flex flex-col gap-space-md">
+        <div class="flex items-center gap-2 pb-space-xs border-b border-surface-container">
+            <span class="material-symbols-outlined text-primary text-[20px]">calendar_month</span>
+            <h3 class="font-bold text-headline-sm text-primary">Filter Periode Presensi Peserta</h3>
+        </div>
+
+        <form method="GET" action="{{ route('reports.user.detail', $user) }}" class="grid grid-cols-1 sm:grid-cols-12 gap-space-md items-end">
+            <div class="sm:col-span-5 flex flex-col gap-1.5">
+                <label for="start_date" class="font-bold text-label-md text-primary">Tanggal Awal</label>
+                <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" 
+                       class="w-full h-11 px-3 rounded-lg bg-surface-container-low border border-surface-container text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary focus:bg-surface-container-lowest">
+            </div>
+
+            <div class="sm:col-span-5 flex flex-col gap-1.5">
+                <label for="end_date" class="font-bold text-label-md text-primary">Tanggal Akhir</label>
+                <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" 
+                       class="w-full h-11 px-3 rounded-lg bg-surface-container-low border border-surface-container text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary focus:bg-surface-container-lowest">
+            </div>
+
+            <div class="sm:col-span-2">
+                <button type="submit" 
+                        class="w-full h-11 flex items-center justify-center gap-1.5 px-space-md rounded-lg bg-primary-container text-on-primary font-bold text-label-md hover:bg-primary transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[18px]">filter_list</span>
+                    <span>Tampilkan</span>
+                </button>
+            </div>
+        </form>
+    </section>
+
+    <!-- Table Section -->
+    <div class="bg-surface-container-lowest rounded-xl border border-surface-container shadow-sm p-space-lg">
+        <div class="flex items-center justify-between pb-space-md border-b border-surface-container">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-secondary text-[20px] filled">history</span>
+                <h3 class="font-bold text-headline-sm text-primary">Log Kehadiran Individual</h3>
+            </div>
+            <span class="text-body-sm font-semibold text-on-surface-variant">
+                {{ $records->count() }} Hari Terdata
+            </span>
+        </div>
+
+        <div class="overflow-x-auto mt-space-md">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-surface-container-low text-on-surface-variant font-bold text-label-sm uppercase tracking-wider">
+                        <th class="py-space-sm px-space-md rounded-l-lg w-12 text-center" scope="col">No</th>
+                        <th class="py-space-sm px-space-md" scope="col">Tanggal</th>
+                        <th class="py-space-sm px-space-md" scope="col">Jam Masuk</th>
+                        <th class="py-space-sm px-space-md" scope="col">Jam Pulang</th>
+                        <th class="py-space-sm px-space-md" scope="col">Status</th>
+                        <th class="py-space-sm px-space-md rounded-r-lg" scope="col">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody class="text-body-md text-on-surface divide-y divide-surface-container">
+                    @forelse($records as $index => $item)
+                        @php
+                            $statusStyle = match(strtolower($item->status)) {
+                                'hadir' => ['bg' => 'bg-[#ecfdf5]', 'text' => 'text-[#047857]', 'dot' => 'bg-[#047857]'],
+                                'terlambat' => ['bg' => 'bg-[#fffbeb]', 'text' => 'text-[#b45309]', 'dot' => 'bg-[#b45309]'],
+                                'izin' => ['bg' => 'bg-[#eff6ff]', 'text' => 'text-[#0051d5]', 'dot' => 'bg-[#0051d5]'],
+                                'sakit' => ['bg' => 'bg-[#fef2f2]', 'text' => 'text-[#ba1a1a]', 'dot' => 'bg-[#ba1a1a]'],
+                                default => ['bg' => 'bg-surface-container', 'text' => 'text-primary', 'dot' => 'bg-primary'],
+                            };
+                        @endphp
+                        <tr class="hover:bg-surface-container-low/60 transition-colors">
+                            <td class="py-space-md px-space-md text-center font-bold text-label-md text-on-surface-variant">
+                                {{ $index + 1 }}
+                            </td>
+                            <td class="py-space-md px-space-md font-medium text-primary whitespace-nowrap">
+                                {{ \Carbon\Carbon::parse($item->date)->locale('id')->isoFormat('dddd, D MMM Y') }}
+                            </td>
+                            <td class="py-space-md px-space-md font-medium text-on-surface whitespace-nowrap">
+                                {{ $item->time_in ? \Carbon\Carbon::parse($item->time_in)->format('H:i') . ' WIB' : '—' }}
+                            </td>
+                            <td class="py-space-md px-space-md font-medium text-on-surface whitespace-nowrap">
+                                {{ $item->time_out ? \Carbon\Carbon::parse($item->time_out)->format('H:i') . ' WIB' : '—' }}
+                            </td>
+                            <td class="py-space-md px-space-md whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-semibold {{ $statusStyle['bg'] }} {{ $statusStyle['text'] }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $statusStyle['dot'] }}"></span>
+                                    {{ $item->status }}
+                                </span>
+                            </td>
+                            <td class="py-space-md px-space-md text-on-surface-variant text-body-sm">
+                                {{ $item->notes ?? ($item->status === 'Hadir' ? 'Tepat waktu - Balai Kota' : ($item->status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Surat keterangan diajukan')) }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="py-space-xl text-center text-on-surface-variant text-body-md">
+                                Belum ada riwayat kehadiran tercatat untuk rentang tanggal ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+@endsection

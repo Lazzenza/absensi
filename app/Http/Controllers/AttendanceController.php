@@ -51,6 +51,22 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Menampilkan halaman presensi harian (Check-in, Check-out, dan Form Presensi Khusus).
+     */
+    public function create(Request $request)
+    {
+        $user = auth()->user();
+        $today = Carbon::today()->toDateString();
+        $todayAttendance = Attendance::where('user_id', $user->id)
+            ->where('date', $today)
+            ->first();
+
+        $users = User::orderBy('name')->get();
+
+        return view('attendances.create', compact('todayAttendance', 'users'));
+    }
+
+    /**
      * Menyimpan presensi baru atau update check-out (Requirement 5.2).
      */
     public function store(Request $request)
@@ -58,6 +74,7 @@ class AttendanceController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'type'    => 'required|in:check_in,check_out,izin,sakit',
+            'notes'   => 'nullable|string|max:255',
         ]);
 
         $userId = $request->user_id;
@@ -83,6 +100,7 @@ class AttendanceController extends Controller
                     'time_in'  => $currentTime,
                     'time_out' => null,
                     'status'   => $status,
+                    'notes'    => $request->notes ?? ($status === 'Terlambat' ? 'Terlambat masuk presensi' : 'Tepat waktu'),
                 ]);
 
                 return back()->with('success', 'Berhasil melakukan Check-in (Status: ' . $status . ').');
@@ -102,6 +120,7 @@ class AttendanceController extends Controller
 
                 $attendance->update([
                     'time_out' => $currentTime,
+                    'notes'    => $request->notes ?? $attendance->notes ?? 'Presensi pulang tercatat',
                 ]);
 
                 return back()->with('success', 'Berhasil melakukan Check-out.');
@@ -119,6 +138,7 @@ class AttendanceController extends Controller
                     'time_in'  => null,
                     'time_out' => null,
                     'status'   => $statusName,
+                    'notes'    => $request->notes ?? ($statusName === 'Izin' ? 'Izin keperluan akademik / kedinasan' : 'Dispensasi sakit terlampir'),
                 ]);
 
                 return back()->with('success', 'Berhasil mencatat keterangan ' . $statusName . '.');
